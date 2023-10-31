@@ -47,7 +47,7 @@ section MBR vstart=0x7c00
 
 ; ---------------------------
 ; 功能：读取硬盘n个扇区
-rd_disk_m_16:
+rd_disk_m_16:   ; 0xcf6
 ; ---------------------------
     mov esi, eax
     mov di, cx
