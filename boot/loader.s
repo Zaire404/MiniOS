@@ -162,6 +162,13 @@ p_mode_start:
     mov gs, ax
     mov byte [gs:160], 'P'       ; 默认文本显示模式是80×25，每个字符两个字节，因此偏移地址为80×2 = 160
 
+
+; 加载kernel
+mov eax, KERNEL_START_SECTOR 
+mov ebx, KERNEL_BIN_BASE_ADDR
+mov ecx, 200    
+call rd_disk_m_32
+
 ; 创建页目录及页表并初始化页内存位图
 call setup_page
 ; 要将描述符表地址及偏移量写入内存gdt_ptr, 一会儿用新地址重新加载
@@ -184,9 +191,73 @@ mov cr0, eax
 ; 在开启分页后,用gdt的新地址重新加载
 lgdt [gdt_ptr]                   
 
-mov byte [gs:160], 'V'
 
-jmp $
+
+; 由于在32位下, 不需要刷新流水线,但是以防万一加了刷新流水线
+jmp SELECTOR_CODE:enter_kernel   ; 强制刷新流水线,更新GDT
+enter_kernel:
+    call kernel_init
+    mov esp, 0xc009f00
+    jmp KERNEL_ENTRY_POINT
+
+; --------将kernel.bin中的segment拷贝到编译的地址-----------
+kernel_init:
+    xor eax, eax
+    xor ebx, ebx
+    xor ecx, ecx
+    xor edx, edx
+    
+    mov dx, [KERNEL_BIN_BASE_ADDR + 42]
+    ; e_phentsize, 表示program header大小
+    mov ebx, [KERNEL_BIN_BASE_ADDR + 28]
+    ; e_phoff, 表示第一个program header在文件中的偏移量
+    
+    add ebx, KERNEL_BIN_BASE_ADDR
+    mov cx, [KERNEL_BIN_BASE_ADDR + 44] 
+    ; e_phnum, 表示有几个program header
+
+    .each_segment:
+        cmp byte [ebx + 0], PT_NULL
+        ; 若p_type = PT_NULL, 则说明program header未使用
+        je .PTNULL
+
+        ; 为函数memcpy压入参数，参数是从右往左以此压入
+        ; 函数原型类似与memcpy(dst, src, size)
+        push dword [ebx + 16]
+        ; program header 中偏移16字节的地方是p_filesz
+        ; 压入memcpy 的第三个参数size
+
+        mov eax, [ebx + 4]      ; 距program header偏移量为4字节的位置是p_offset 
+        add eax, KERNEL_BIN_BASE_ADDR
+        ; 加上kernel.bin被加载到的物理地址, eax为该段的物理地址
+
+        push eax                ; 压入src
+        push dword [ebx + 8]    ; 压入dst
+        call mem_cpy
+        add esp, 12             ; 清理栈中压入的三个参数
+    
+    .PTNULL:
+        add ebx, edx            ; edx为program header大小，即e_phentsize
+                                ; 在此ebx指向下一个program header
+        loop .each_segment
+        ret
+
+; ------------逐字节拷贝mem_cpy(dst, src, size)-------------
+mem_cpy:
+    cld                         ; 控制eflags寄存器中的方向标位，将其置0
+    push ebp
+    mov ebp, esp                ; 构造栈帧
+    push ecx                    ; rep指令用到了ecx
+                                ; 但ecx对于外层段的循环还有用, 故先入栈备份
+    mov edi, [ebp + 8]          ; dst
+    mov esi, [ebp + 12]         ; src
+    mov ecx, [ebp + 16]         ; size
+    rep movsb                   ; 逐字节拷贝
+    ; 恢复环境
+    pop ecx
+    pop ebp
+    ret
+
 
 
 ; ------------创建页目录及页表-------------
@@ -243,4 +314,67 @@ setup_page:
         inc esi
         add eax, 0x1000
         loop .create_kernel_pde
+    ret
+
+; ---------------------------
+; 功能：读取硬盘n个扇区
+rd_disk_m_32:   ; 0xcf6
+; ---------------------------
+    mov esi, eax
+    mov di, cx
+
+    mov dx, 0x1f2
+    mov al, cl 
+    out dx, al
+    mov eax, esi
+
+    mov dx, 0x1f3
+    out dx, al
+
+    mov cl, 8
+    shr eax, cl
+    mov dx, 0x1f4
+    out dx, al
+
+    shr eax, cl
+    mov dx, 0x1f5
+    out dx, al
+
+    shr eax, cl
+    and al, 0x0f
+    or al, 0xe0
+    mov dx, 0x1f6
+    out dx, al
+
+; 向0x1f7端口写入读命令, 0x20
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+
+; 检测硬盘状态
+    .not_ready:
+        ; 同一端口，写时表示写入命令字，读时表示读如硬盘状态
+        nop
+        in al, dx
+        and al, 0x88
+        ; 第3位DRQ为1表示硬盘控制器已准备好数据传输
+        ; 第7位BSY为1表示硬盘忙
+        cmp al, 0x08
+        jnz .not_ready  ; 没准备好就继续等
+
+; 从0x1f0端口读数据
+    mov ax, di
+    mov dx, 256
+    mul dx
+    mov cx, ax
+    ; di为要读取的扇区数，一个扇区512字节，每一读如一个字
+    ; 共需di*512/2次，所以di*256
+
+    mov dx, 0x1f0
+
+    .go_on_read:
+        in ax, dx
+        mov [ebx], ax
+        add ebx, 2
+        loop .go_on_read
     ret
