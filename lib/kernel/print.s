@@ -28,8 +28,7 @@ put_str:
         pop ecx
         pop ebx
         ret 
-
-
+       
 ;------------------------put_char--------------------------
 ; 把栈中的1个字符写入光标所在处
 global put_char
