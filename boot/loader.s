@@ -163,6 +163,7 @@ p_mode_start:
     mov gs, ax
     mov byte [gs:160], 'P'       ; 默认文本显示模式是80×25，每个字符两个字节，因此偏移地址为80×2 = 160
 
+
 ; 加载kernel
 mov eax, KERNEL_START_SECTOR 
 mov ebx, KERNEL_BIN_BASE_ADDR
@@ -190,6 +191,7 @@ or eax, 0x80000000
 mov cr0, eax
 ; 在开启分页后,用gdt的新地址重新加载
 lgdt [gdt_ptr]                   
+
 
 
 ; 由于在32位下, 不需要刷新流水线,但是以防万一加了刷新流水线
@@ -256,8 +258,6 @@ mem_cpy:
     pop ecx
     pop ebp
     ret
-
-
 
 
 
