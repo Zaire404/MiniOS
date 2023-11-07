@@ -4,6 +4,7 @@ section loader vstart=LOADER_BASE_ADDR
 LOADER_STACK_TOP equ LOADER_BASE_ADDR
 
 
+
 ; 构建GDT及其内部描述符
 ; GDT第0个是无效描述符
 GDT_BASE: 
@@ -369,7 +370,6 @@ rd_disk_m_32:   ; 0xcf6
     mov cx, ax
     ; di为要读取的扇区数，一个扇区512字节，每一读如一个字
     ; 共需di*512/2次，所以di*256
-
     mov dx, 0x1f0
 
     .go_on_read:
