@@ -4,6 +4,30 @@ SELECTOR_VIDEO equ (0x0003 << 3) + TI_GDT + RPL0
 
 [bits 32]
 section .text
+
+;------------------------put_str--------------------------
+; 打印字符串
+global put_str
+put_str:
+    push ebx
+    push ecx
+    xor ecx, ecx
+    mov ebx, [esp + 12]
+    .goon:
+        mov cl, [ebx]
+        cmp cl, 0
+        jz .str_over
+        push ecx
+        call put_char
+        add esp, 4
+        inc ebx
+        jmp .goon
+    .str_over:
+        pop ecx
+        pop ebx
+        ret 
+
+
 ;------------------------put_char--------------------------
 ; 把栈中的1个字符写入光标所在处
 global put_char
