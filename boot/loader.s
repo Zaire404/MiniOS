@@ -1,7 +1,8 @@
 %include "boot.inc"
 
 section loader vstart=LOADER_BASE_ADDR
-LOADER_STACKP_TOP equ LOADER_BASE_ADDR
+LOADER_STACK_TOP equ LOADER_BASE_ADDR
+
 
 
 ; 构建GDT及其内部描述符
@@ -157,11 +158,10 @@ p_mode_start:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov esp, LOADER_STACKP_TOP
+    mov esp, LOADER_STACK_TOP
     mov ax, SELECTOR_VIDEO
     mov gs, ax
     mov byte [gs:160], 'P'       ; 默认文本显示模式是80×25，每个字符两个字节，因此偏移地址为80×2 = 160
-
 
 ; 加载kernel
 mov eax, KERNEL_START_SECTOR 
@@ -192,12 +192,11 @@ mov cr0, eax
 lgdt [gdt_ptr]                   
 
 
-
 ; 由于在32位下, 不需要刷新流水线,但是以防万一加了刷新流水线
 jmp SELECTOR_CODE:enter_kernel   ; 强制刷新流水线,更新GDT
 enter_kernel:
     call kernel_init
-    mov esp, 0xc009f00
+    mov esp, 0xc009f000
     jmp KERNEL_ENTRY_POINT
 
 ; --------将kernel.bin中的segment拷贝到编译的地址-----------
@@ -257,6 +256,8 @@ mem_cpy:
     pop ecx
     pop ebp
     ret
+
+
 
 
 
@@ -369,7 +370,6 @@ rd_disk_m_32:   ; 0xcf6
     mov cx, ax
     ; di为要读取的扇区数，一个扇区512字节，每一读如一个字
     ; 共需di*512/2次，所以di*256
-
     mov dx, 0x1f0
 
     .go_on_read:
