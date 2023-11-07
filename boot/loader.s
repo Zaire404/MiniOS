@@ -1,7 +1,7 @@
 %include "boot.inc"
 
 section loader vstart=LOADER_BASE_ADDR
-LOADER_STACKP_TOP equ LOADER_BASE_ADDR
+LOADER_STACK_TOP equ LOADER_BASE_ADDR
 
 
 ; 构建GDT及其内部描述符
@@ -157,7 +157,7 @@ p_mode_start:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov esp, LOADER_STACKP_TOP
+    mov esp, LOADER_STACK_TOP
     mov ax, SELECTOR_VIDEO
     mov gs, ax
     mov byte [gs:160], 'P'       ; 默认文本显示模式是80×25，每个字符两个字节，因此偏移地址为80×2 = 160
@@ -195,7 +195,7 @@ lgdt [gdt_ptr]
 jmp SELECTOR_CODE:enter_kernel   ; 强制刷新流水线,更新GDT
 enter_kernel:
     call kernel_init
-    mov esp, 0xc009f00
+    mov esp, 0xc009f000
     jmp KERNEL_ENTRY_POINT
 
 ; --------将kernel.bin中的segment拷贝到编译的地址-----------
