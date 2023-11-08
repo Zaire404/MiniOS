@@ -160,14 +160,15 @@ global put_int
 put_int:
     pushad 
     mov ebp, esp
-    mov eax, [ebp + 4 * 9]
+    mov eax, [ebp + 4 * 9]      ; call的返回地址占4个字节+pushad的8个4字节
     mov edx, eax
-    mov edi, 7
-    mov ecx, 8
+    mov edi, 7                  ; 指定在put_int_buffer中初始的偏移量    
+    mov ecx, 8                  ; 32位数字中，十六进制数字的位数是8个
     mov ebx, put_int_buffer
     
+    ; 将32位数字按照十六进制的形式从低位到高位逐个处理
     .16based_4bits:
-        and edx, 0x0000000F
+        and edx, 0x0000000F     ; and操作后，edx只有低4位有效
         cmp edx, 9
         jg .is_A2F
         add edx, '0'
@@ -175,24 +176,31 @@ put_int:
     .is_A2F:
         sub edx, 10
         add edx, 'A'
+
+    ; 将每一位数字转换成对应的字符后，按照类似"大端"的顺序
+    ; 存储到缓冲区put_int_buffer
     .store:
+        ; 此时dl中应该是数字对应的字符的ascii码
         mov [ebx + edi], dl
         dec edi
         shr eax, 4
         mov edx, eax
         loop .16based_4bits
 
+    ; 现在put_int_buffer中全是字符
+    ; 打印之前把高位连续的字符去掉, 比如000123变成123
     .ready_to_print:
         inc edi
     .skip_prefix_0:
         cmp edi, 8
         je .full0
     
+    ; 找出连续的0字符，edi作为非0的最高位字符的偏移
     .go_on_skip:
         mov cl, [put_int_buffer + edi]
         inc edi
         cmp cl, '0'
-        je .skip_prefix_0
+        je .skip_prefix_0       ; 继续判断下一位字符是否为字符0
         dec edi
         jmp .put_each_num
     
