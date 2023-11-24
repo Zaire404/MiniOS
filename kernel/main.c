@@ -1,7 +1,9 @@
 #include "print.h"
 #include "init.h"
-void main(void) {
+#include "debug.h"
+int main(void) {
     init_all();   
-    asm volatile("sti"); 
+    ASSERT(1 == 2);
     while(1);
+    return 0;
 }
