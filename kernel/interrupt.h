@@ -3,8 +3,8 @@
 typedef void* intr_handler;
 void idt_init(void);
 enum intr_status {
-    INTR_OFF,           // 关中断
-    INTR_ON             // 开中断
+    INTR_OFF,  // 关中断
+    INTR_ON    // 开中断
 };
 enum intr_status intr_get_status(void);
 enum intr_status intr_set_status(enum intr_status status);
