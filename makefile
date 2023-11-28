@@ -14,7 +14,10 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/kernel.o \
 		$(BUILD_DIR)/print.o \
 		$(BUILD_DIR)/timer.o \
-		$(BUILD_DIR)/debug.o
+		$(BUILD_DIR)/debug.o \
+		$(BUILD_DIR)/string.o \
+		$(BUILD_DIR)/bitmap.o \
+		$(BUILD_DIR)/memory.o
 
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
@@ -41,6 +44,9 @@ $(BUILD_DIR)/%.o: kernel/%.s
 
 $(BUILD_DIR)/%.o: lib/kernel/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
+
+$(BUILD_DIR)/%.o: lib/kernel/%.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 # Link all kernel object files
 $(BUILD_DIR)/kernel.bin: $(OBJS)
