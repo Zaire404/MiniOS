@@ -1,7 +1,15 @@
-#include "print.h"
+#include "debug.h"
 #include "init.h"
-void main(void) {
-    init_all();   
-    asm volatile("sti"); 
-    while(1);
+#include "memory.h"
+#include "print.h"
+
+int main(void) {
+    init_all();
+    void* addr = get_kernel_pages(3);
+    put_str("\n get_kernel_page start vaddr is ");
+    put_int((uint32_t)addr);
+    put_str("\n");
+    while (1) {
+    };
+    return 0;
 }
