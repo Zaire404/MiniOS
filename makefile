@@ -21,7 +21,7 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/thread.o \
 		$(BUILD_DIR)/list.o \
 		$(BUILD_DIR)/switch.o
-
+    
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
 
