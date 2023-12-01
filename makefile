@@ -4,21 +4,24 @@ HD60M_PATH = /opt/bochs/hd60M.img
 AS = nasm
 CC = gcc
 LD = ld
-LIB = -I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/
+LIB = -I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/ -I thread/
 ASFLAGS = -f elf
 CFLAGS = -m32 -Wall $(LIB) -c -fno-builtin -fno-stack-protector -W -Wstrict-prototypes -Wmissing-prototypes 
 LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
 OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/init.o \
-		$(BUILD_DIR)/interrupt.o \
 		$(BUILD_DIR)/kernel.o \
 		$(BUILD_DIR)/print.o \
+		$(BUILD_DIR)/interrupt.o \
 		$(BUILD_DIR)/timer.o \
 		$(BUILD_DIR)/debug.o \
 		$(BUILD_DIR)/string.o \
 		$(BUILD_DIR)/bitmap.o \
-		$(BUILD_DIR)/memory.o
-
+		$(BUILD_DIR)/memory.o \
+		$(BUILD_DIR)/thread.o \
+		$(BUILD_DIR)/list.o \
+		$(BUILD_DIR)/switch.o
+    
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
 
@@ -38,6 +41,12 @@ $(BUILD_DIR)/%.o: device/%.c
 $(BUILD_DIR)/%.o: lib/%.c
 	$(CC) $(CFLAGS) -o $@ $<
 
+$(BUILD_DIR)/%.o: lib/kernel/%.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(BUILD_DIR)/%.o: thread/%.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 # Compile assembly kernel files
 $(BUILD_DIR)/%.o: kernel/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -45,8 +54,8 @@ $(BUILD_DIR)/%.o: kernel/%.s
 $(BUILD_DIR)/%.o: lib/kernel/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(BUILD_DIR)/%.o: lib/kernel/%.c
-	$(CC) $(CFLAGS) -o $@ $<
+$(BUILD_DIR)/%.o: thread/%.s
+	$(AS) $(ASFLAGS) -o $@ $<
 
 # Link all kernel object files
 $(BUILD_DIR)/kernel.bin: $(OBJS)
