@@ -3,6 +3,7 @@
 #include "global.h"
 #include "interrupt.h"
 #include "io.h"
+#include "ioqueue.h"
 #include "print.h"
 #include "string.h"
 
@@ -35,6 +36,7 @@
 #define ctrl_r_make 0xe01d
 #define ctrl_r_break 0xe09d
 #define caps_lock_make 0x3a
+struct ioqueue kbd_buf;  // 定义键盘缓冲区
 
 // 定义以下变量记录相应键是否按下的状态, ext_scancode用于记录makecode是否以0xe0开头
 static bool ctrl_status, shift_status, alt_status, caps_lock_status, ext_scancode;
@@ -146,7 +148,7 @@ static void intr_keyboard_handler(void) {
         bool shift = false;  // 判断是否与shift组合,用来在一维数组中索引对应的字符
         if ((scancode < 0x0e) || (scancode == 0x29) || (scancode == 0x1a) || (scancode == 0x1b) || (scancode == 0x2b) || (scancode == 0x27) ||
             (scancode == 0x28) || (scancode == 0x33) || (scancode == 0x34) || (scancode == 0x35)) {
-            /* 代表两个字母的键 
+            /* 代表两个字母的键
                 0x0e 数字'0'~'9',字符'-',字符'='
                 0x29 字符'`'
                 0x1a 字符'['
@@ -173,13 +175,16 @@ static void intr_keyboard_handler(void) {
         }
 
         // 将扫描码的高字节置为0,主要是针对高字节是e0的扫描码
-        uint8_t index = (scancode &= 0x00ff);  
+        uint8_t index = (scancode &= 0x00ff);
 
         char cur_char = keymap[index][shift];  // 在数组中找到对应的字符
 
         // 只处理ascii码不为0的键
         if (cur_char) {
-            put_char(cur_char);
+            // 若kbd_buf中未满并且待加入的cur_char不为0,则将其加入到缓冲区kbd_buf中
+            if (!ioq_full(&kbd_buf)) {
+                ioq_putchar(&kbd_buf, cur_char);
+            }
             return;
         }
 
@@ -202,6 +207,7 @@ static void intr_keyboard_handler(void) {
 // 键盘初始化
 void keyboard_init() {
     put_str("keyboard init start\n");
+    ioqueue_init(&kbd_buf);
     register_handler(0x21, intr_keyboard_handler);
     put_str("keyboard init done\n");
 }

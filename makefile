@@ -23,7 +23,8 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/switch.o \
 		$(BUILD_DIR)/sync.o \
 		$(BUILD_DIR)/console.o \
-		$(BUILD_DIR)/keyboard.o
+		$(BUILD_DIR)/keyboard.o \
+		$(BUILD_DIR)/ioqueue.o
     
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o

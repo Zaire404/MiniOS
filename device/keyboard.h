@@ -2,4 +2,5 @@
 #define __DEVICE_KEYBOARD_H
 #include "stdint.h"
 void keyboard_init(void);
+extern struct ioqueue kbd_buf;
 #endif
