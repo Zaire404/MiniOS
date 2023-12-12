@@ -76,7 +76,7 @@ void ioq_putchar(struct ioqueue* ioq, char byte) {
         lock_release(&ioq->lock);  // 释放锁
     }
 
-    ioq->buf[ioq->head] = byte;  // 把字节放入缓冲区中
+    ioq->buf[ioq->head] = byte;       // 把字节放入缓冲区中
     ioq->head = next_pos(ioq->head);  // 把写游标移到下一位置
 
     if (ioq->consumer != NULL) {
