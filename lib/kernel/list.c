@@ -1,7 +1,5 @@
 #include "list.h"
 
-#include <stdbool.h>
-
 #include "debug.h"
 #include "interrupt.h"
 #include "string.h"

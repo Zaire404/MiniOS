@@ -128,19 +128,6 @@ static void exception_init(void) {
     intr_name[19] = "#XF SIMD Floating-Point Exception";
 }
 
-// 完成有关中断的所有初始化工作
-void idt_init() {
-    put_str("idt_init start\n");
-    idt_desc_init();
-    exception_init();
-    pic_init();
-
-    uint64_t idt_operand = (sizeof(idt) - 1) | ((uint64_t)((uint32_t)idt << 16));
-    // 这里(sizeof(idt)-1)是表示段界限，占16位，然后我们的idt地址左移16位表示高32位，表示idt首地址
-    asm volatile("lidt %0" ::"m"(idt_operand));
-    put_str("idt_init done\n");
-}
-
 // 开中断并返回中断前的状态
 enum intr_status intr_enable() {
     enum intr_status old_status;
@@ -157,7 +144,7 @@ enum intr_status intr_disable() {
     enum intr_status old_status;
     if (INTR_ON == intr_get_status()) {
         old_status = INTR_ON;
-        asm volatile("cli" ::: "memory");
+        asm volatile("cli" : : : "memory");
     } else {
         old_status = INTR_OFF;
     }
@@ -178,4 +165,17 @@ enum intr_status intr_get_status() {
     uint32_t eflags = 0;
     GET_EFLAGS(eflags);
     return (EFLAGS_IF & eflags) ? INTR_ON : INTR_OFF;
+}
+
+// 完成有关中断的所有初始化工作
+void idt_init() {
+    put_str("idt_init start\n");
+    idt_desc_init();
+    exception_init();
+    pic_init();
+
+    uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)(uint32_t)idt << 16));
+    // 这里(sizeof(idt)-1)是表示段界限，占16位，然后我们的idt地址左移16位表示高32位，表示idt首地址
+    asm volatile("lidt %0" : : "m"(idt_operand));
+    put_str("idt_init done\n");
 }

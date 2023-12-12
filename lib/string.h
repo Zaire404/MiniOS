@@ -1,6 +1,5 @@
 #ifndef __LIB_STRING_H
 #define __LIB_STRING_H
-#define NULL 0
 #include "stdint.h"
 
 void memset(void* dst_, uint8_t value, uint32_t size);      // dst起始size字节置为value

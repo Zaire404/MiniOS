@@ -143,7 +143,7 @@ static void intr_keyboard_handler(void) {
             alt_status = false;
         }
         return;
-    } else if (scancode > 0x00 && scancode < 0x3b || (scancode == alt_r_make) || (scancode == ctrl_r_make)) {
+    } else if ((scancode > 0x00 && scancode < 0x3b) || (scancode == alt_r_make) || (scancode == ctrl_r_make)) {
         // 若为通码,只处理数组中定义的键以及alt_right和ctrl键,全是make_code
         bool shift = false;  // 判断是否与shift组合,用来在一维数组中索引对应的字符
         if ((scancode < 0x0e) || (scancode == 0x29) || (scancode == 0x1a) || (scancode == 0x1b) || (scancode == 0x2b) || (scancode == 0x27) ||

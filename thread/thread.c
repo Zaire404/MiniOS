@@ -6,9 +6,9 @@
 #include "list.h"
 #include "memory.h"
 #include "print.h"
+#include "process.h"
 #include "string.h"
 
-#define PG_SIZE 4096
 struct task_struct* main_thread;      // 主线程PCB
 struct list thread_ready_list;        // 就绪队列
 struct list thread_all_list;          // 所有任务队列
@@ -34,10 +34,13 @@ static void kernel_thread(thread_func* function, void* func_arg) {
 // 初始化线程栈thread_stack, 将待执行的函数和参数放到thread_stack中的相应位置
 void thread_create(struct task_struct* pthread, thread_func function, void* func_arg) {
     // 先预留中断使用栈的空间
-    pthread->self_kstack -= sizeof(struct intr_stack);
+    // pthread->self_kstack -= sizeof(struct intr_stack);
+    pthread->self_kstack = (uint32_t*)((int)(pthread->self_kstack) - sizeof(struct intr_stack));
 
     // 再留出线程栈空间
-    pthread->self_kstack -= sizeof(struct thread_stack);
+    // pthread->self_kstack -= sizeof(struct thread_stack);
+    pthread->self_kstack = (uint32_t*)((int)(pthread->self_kstack) - sizeof(struct thread_stack));
+    
     struct thread_stack* kthread_stack = (struct thread_stack*)pthread->self_kstack;
     kthread_stack->eip = kernel_thread;
     kthread_stack->function = function;
@@ -121,6 +124,7 @@ void schedule() {
     thread_tag = list_pop(&thread_ready_list);
     struct task_struct* next = elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
+    process_activate(next);  // 激活任务页表等
     switch_to(cur, next);
 }
 
