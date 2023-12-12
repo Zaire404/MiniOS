@@ -3,7 +3,7 @@
 #include "debug.h"
 #include "global.h"
 #include "interrupt.h"
-#define NULL 0
+
 // 初始化io队列ioq
 void ioqueue_init(struct ioqueue* ioq) {
     lock_init(&ioq->lock);                 // 初始化io队列的锁

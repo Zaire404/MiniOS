@@ -1,6 +1,8 @@
 #ifndef __THREAD_THREAD_H
 #define __THREAD_THREAD_H
+#include "bitmap.h"
 #include "list.h"
+#include "memory.h"
 #include "stdint.h"
 
 #define STACK_MAGIC 0x19870916
@@ -78,9 +80,13 @@ struct task_struct {
     // all_list_tag的作用是用于线程队列thread_all_list中的结点
     struct list_elem all_list_tag;
 
-    uint32_t* pgdir;       // 进程自己页表的虚拟地址
-    uint32_t stack_magic;  // 魔数, 栈的边界标记, 用于检测栈的溢出
+    uint32_t* pgdir;                     // 进程自己页表的虚拟地址
+    struct virtual_addr userprog_vaddr;  // 用户进程的虚拟地址
+    uint32_t stack_magic;                // 魔数, 栈的边界标记, 用于检测栈的溢出
 };
+
+extern struct list thread_ready_list;
+extern struct list thread_all_list;
 
 struct task_struct* running_thread(void);
 void thread_create(struct task_struct* pthread, thread_func function, void* func_arg);

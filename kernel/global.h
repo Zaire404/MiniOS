@@ -1,8 +1,6 @@
 #ifndef __KERNEL_GLOBAL_H
 #define __KERNEL_GLOBAL_H
 
-#include <stdbool.h>
-
 #include "stdint.h"
 
 #define PG_SIZE 4096
@@ -46,8 +44,8 @@
 #define SELECTOR_U_STACK SELECTOR_U_DATA
 
 #define GDT_ATTR_HIGH ((DESC_G_4K << 7) + (DESC_D_32 << 6) + (DESC_L << 5) + (DESC_AVL << 4))
-#define GDT_CODE_ATTR_LOW_DPL3 ((DESC_P << 7) + (DESC_DPL_0 << 5) + (DESC_S_CODE << 4) + DESC_TYPE_CODE)
-#define GDT_DATA_ATTR_LOW_DPL3 ((DESC_P << 7) + (DESC_DPL_0 << 5) + (DESC_S_DATA << 4) + DESC_TYPE_DATA)
+#define GDT_CODE_ATTR_LOW_DPL3 ((DESC_P << 7) + (DESC_DPL_3 << 5) + (DESC_S_CODE << 4) + DESC_TYPE_CODE)
+#define GDT_DATA_ATTR_LOW_DPL3 ((DESC_P << 7) + (DESC_DPL_3 << 5) + (DESC_S_DATA << 4) + DESC_TYPE_DATA)
 
 // -------------- TSS 描述符属性 --------------
 #define TSS_DESC_D 0
@@ -75,4 +73,16 @@ struct gdt_desc {
 #define IDT_DESC_ATTR_DPL0 ((IDT_DESC_P << 7) + (IDT_DESC_DPL0 << 5) + IDT_DESC_32_TYPE)
 #define IDT_DESC_ATTR_DPL3 ((IDT_DESC_P << 7) + (IDT_DESC_DPL3 << 5) + IDT_DESC_32_TYPE)
 
+// -------------- eflags寄存器属性 --------------
+#define EFLAGS_MBS (1 << 1)      // 此项必须要设置
+#define EFLAGS_IF_1 (1 << 9)     // if为1,开中断
+#define EFLAGS_IF_0 0            // if为0,关中断
+#define EFLAGS_IOPL_3 (3 << 12)  // IOPL3,用于测试用户程序在非系统调用下进行IO
+#define EFLAGS_IOPL_0 (0 << 12)  // IOPL0
+
+#define DIV_ROUND_UP(X, STEP) ((X + STEP - 1) / (STEP))
+#define NULL ((void*)0)
+#define bool int
+#define true 1
+#define false 0
 #endif
