@@ -7,6 +7,8 @@
 
 #define STACK_MAGIC 0x19870916
 typedef void thread_func(void*);
+typedef int16_t pid_t;
+
 // 进程或线程状态
 enum task_status { TASK_RUNNING, TASK_READY, TASK_BLOCKED, TASK_WAITING, TASK_HANGING, TASK_DIED };
 
@@ -66,6 +68,7 @@ struct thread_stack {
 // 进程或线程的PCB
 struct task_struct {
     uint32_t* self_kstack;  // 各内核线程都用自己的内核栈
+    pid_t pid;
     enum task_status status;
     uint8_t priority;  // 线程优先级
     char name[16];

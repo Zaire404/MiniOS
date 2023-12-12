@@ -8,11 +8,13 @@
 #include "print.h"
 #include "process.h"
 #include "string.h"
+#include "sync.h"
 
 struct task_struct* main_thread;      // 主线程PCB
 struct list thread_ready_list;        // 就绪队列
 struct list thread_all_list;          // 所有任务队列
 static struct list_elem* thread_tag;  // 用于保存队列中的线程结点
+struct lock pid_lock;                 // 分配pid锁
 
 extern void switch_to(struct task_struct* cur, struct task_struct* next);
 
@@ -31,6 +33,15 @@ static void kernel_thread(thread_func* function, void* func_arg) {
     function(func_arg);
 }
 
+// 分配pid
+static pid_t allocate_pid(void) {
+    static pid_t next_pid = 0;
+    lock_acquire(&pid_lock);
+    next_pid++;
+    lock_release(&pid_lock);
+    return next_pid;
+}
+
 // 初始化线程栈thread_stack, 将待执行的函数和参数放到thread_stack中的相应位置
 void thread_create(struct task_struct* pthread, thread_func function, void* func_arg) {
     // 先预留中断使用栈的空间
@@ -40,7 +51,7 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
     // 再留出线程栈空间
     // pthread->self_kstack -= sizeof(struct thread_stack);
     pthread->self_kstack = (uint32_t*)((int)(pthread->self_kstack) - sizeof(struct thread_stack));
-    
+
     struct thread_stack* kthread_stack = (struct thread_stack*)pthread->self_kstack;
     kthread_stack->eip = kernel_thread;
     kthread_stack->function = function;
@@ -51,6 +62,7 @@ void thread_create(struct task_struct* pthread, thread_func function, void* func
 // 初始化线程基本信息
 void init_thread(struct task_struct* pthread, char* name, int prio) {
     memset(pthread, 0, sizeof(*pthread));
+    pthread->pid = allocate_pid();
     strcpy(pthread->name, name);
     if (pthread == main_thread) {
         // 把main函数也封装成一个线程, 并且它是一直运行的, 故将其直接设为TASK_RUNNING
@@ -161,6 +173,7 @@ void thread_init(void) {
     put_str("thread_init start\n");
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
+    lock_init(&pid_lock);
     // 将当前main函数创建为线程
     make_main_thread();
     put_str("thread_init done\n");
