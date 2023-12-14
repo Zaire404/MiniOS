@@ -1,7 +1,9 @@
 #ifndef __KERNEL_MEMORY_H
 #define __KERNEL_MEMORY_H
 #include "bitmap.h"
+#include "list.h"
 #include "stdint.h"
+
 // 内存池标记, 用于判断用哪个内存池
 enum pool_flags {
     PF_KERNEL = 1,  // 内核内存池
@@ -28,4 +30,22 @@ void* get_user_pages(uint32_t pg_cnt);
 void* get_a_page(enum pool_flags pf, uint32_t vaddr);
 uint32_t addr_v2p(uint32_t vaddr);
 
+// 内存块
+struct mem_block {
+    struct list_elem free_elem;
+};
+
+// 内存块描述符
+struct mem_block_desc {
+    uint32_t block_size;        // 内存块大小
+    uint32_t blocks_per_arena;  // 本arena中可容纳此mem_block的数量
+    struct list free_list;      // 目前可用的mem_block链表
+};
+
+void block_desc_init(struct mem_block_desc* desc_array);
+void* sys_malloc(uint32_t size);
+void pfree(uint32_t pg_phy_addr);
+void mfree_page(enum pool_flags pf, void* _vaddr, uint32_t pg_cnt);
+void sys_free(void* ptr);
+#define DESC_CNT 7
 #endif

@@ -5,7 +5,7 @@
 #include "print.h"
 #include "stdint.h"
 
-#define IDT_DESC_CNT 0x30  // 目前总共支持的中断数
+#define IDT_DESC_CNT 0x81  // 目前总共支持的中断数
 #define PIC_M_CTRL 0x20    // 主片控制端口
 #define PIC_M_DATA 0x21    // 主片数据端口
 #define PIC_S_CTRL 0xA0    // 从片控制端口
@@ -13,6 +13,8 @@
 
 #define EFLAGS_IF 0x00000200  // eflags寄存器的if为1
 #define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl; popl %0" : "=g"(EFLAG_VAR))
+
+extern uint32_t syscall_handler(void);
 
 // 中断门描述符结构体
 struct gate_desc {
@@ -63,9 +65,12 @@ static void make_idt_desc(struct gate_desc* p_gdesc, uint8_t attr, intr_handler 
 
 // 初始化中断描述表
 static void idt_desc_init(void) {
+    int last_index = IDT_DESC_CNT - 1;
     for (int i = 0; i < IDT_DESC_CNT; ++i) {
         make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
     }
+    // 单独处理系统调用, 系统调用对应的中断门dpl为3, 中断处理程序为单独的syscall_handler
+    make_idt_desc(&idt[last_index], IDT_DESC_ATTR_DPL3, syscall_handler);
     put_str("idt desc init done");
 }
 
