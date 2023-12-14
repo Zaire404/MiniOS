@@ -1,9 +1,10 @@
 #include "syscall-init.h"
 
+#include "console.h"
 #include "print.h"
+#include "string.h"
 #include "syscall.h"
 #include "thread.h"
-#include "string.h"
 
 #define syscall_nr 32
 typedef void* syscall;
