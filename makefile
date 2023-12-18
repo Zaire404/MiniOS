@@ -30,6 +30,8 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/syscall-init.o \
 		$(BUILD_DIR)/syscall.o \
 		$(BUILD_DIR)/stdio.o \
+		$(BUILD_DIR)/stdio-kernel.o \
+		$(BUILD_DIR)/ide.o \
     
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
