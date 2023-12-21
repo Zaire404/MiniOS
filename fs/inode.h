@@ -19,4 +19,8 @@ struct inode {
     struct list_elem inode_tag;
 };
 
+void inode_sync(struct partition* part, struct inode* inode, void* io_buf);
+void inode_init(uint32_t inode_no, struct inode* new_inode);
+void inode_close(struct inode* inode);
+struct inode* inode_open(struct partition* part, uint32_t inode_no);
 #endif

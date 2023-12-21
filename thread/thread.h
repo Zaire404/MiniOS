@@ -6,6 +6,7 @@
 #include "stdint.h"
 
 #define STACK_MAGIC 0x19870916
+#define MAX_FILES_OPEN_PER_PROC 8  // 每个进程最大的打开文件数
 typedef void thread_func(void*);
 typedef int16_t pid_t;
 
@@ -76,6 +77,8 @@ struct task_struct {
 
     // 此任务自从上cpu运行后至今占用了多少cpu滴答数, 也就是此任务执行了多久
     uint32_t elapsed_ticks;
+
+    int32_t fd_table[MAX_FILES_OPEN_PER_PROC];  // 文件描述符数组
 
     // general_tag的作用是用于线程在一般的队列中的结点
     struct list_elem general_tag;
