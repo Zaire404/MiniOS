@@ -49,8 +49,8 @@ uint32_t getpid(void) {
 }
 
 // 打印字符串
-uint32_t write(char* str) {
-    return _syscall1(SYS_WRITE, str);
+uint32_t write(int32_t fd, const void* buf, uint32_t count) {
+    return _syscall3(SYS_WRITE, fd, buf, count);
 }
 
 // 分配size字节大小的内存, 并返回结果
