@@ -6,6 +6,7 @@
 #include "stdint.h"
 
 #define STACK_MAGIC 0x19870916
+#define MAX_FILES_OPEN_PER_PROC 8  // 每个进程最大的打开文件数
 typedef void thread_func(void*);
 typedef int16_t pid_t;
 
@@ -77,6 +78,8 @@ struct task_struct {
     // 此任务自从上cpu运行后至今占用了多少cpu滴答数, 也就是此任务执行了多久
     uint32_t elapsed_ticks;
 
+    int32_t fd_table[MAX_FILES_OPEN_PER_PROC];  // 文件描述符数组
+
     // general_tag的作用是用于线程在一般的队列中的结点
     struct list_elem general_tag;
 
@@ -85,8 +88,9 @@ struct task_struct {
 
     uint32_t* pgdir;                               // 进程自己页表的虚拟地址
     struct virtual_addr userprog_vaddr;            // 用户进程的虚拟地址
-    uint32_t stack_magic;                          // 魔数, 栈的边界标记, 用于检测栈的溢出
     struct mem_block_desc u_block_desc[DESC_CNT];  // 用户进程内存块描述符
+    uint32_t cwd_inode_nr;                         // 进程所在的工作目录的inode编号
+    uint32_t stack_magic;                          // 魔数, 栈的边界标记, 用于检测栈的溢出
 };
 
 extern struct list thread_ready_list;
