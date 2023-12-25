@@ -13,10 +13,10 @@
 #define MAX_ARG_NR 16  // 加上命令名外, 最多支持15个参数
 
 // 存储输入的命令
-static char cmd_line[cmd_len] = {0};
+static char cmd_line[MAX_PATH_LEN] = {0};
 
 // 用来记录当前目录, 是当前目录的缓存, 每次执行cd命令时会更新此内容
-char cwd_cache[64] = {0};
+char cwd_cache[MAX_PATH_LEN] = {0};
 
 char* argv[MAX_ARG_NR];               // argv必须为全局变量，为了以后exec的程序可访问参数
 char final_path[MAX_PATH_LEN] = {0};  // 用于洗路径时的缓冲
@@ -131,13 +131,27 @@ void my_shell(void) {
             printf("num of arguments exceed %d\n", MAX_ARG_NR);
             continue;
         }
-
-        char buf[MAX_PATH_LEN] = {0};
-        int32_t arg_idx = 0;
-        while (arg_idx < argc) {
-            make_clear_abs_path(argv[arg_idx], buf);
-            printf("%s -> %s\n", argv[arg_idx], buf);
-            arg_idx++;
+        if (!strcmp("ls", argv[0])) {
+            buildin_ls(argc, argv);
+        } else if (!strcmp("cd", argv[0])) {
+            if (buildin_cd(argc, argv) != NULL) {
+                memset(cwd_cache, 0, MAX_PATH_LEN);
+                strcpy(cwd_cache, final_path);
+            }
+        } else if (!strcmp("pwd", argv[0])) {
+            buildin_pwd(argc, argv);
+        } else if (!strcmp("ps", argv[0])) {
+            buildin_ps(argc, argv);
+        } else if (!strcmp("clear", argv[0])) {
+            buildin_clear(argc, argv);
+        } else if (!strcmp("mkdir", argv[0])) {
+            buildin_mkdir(argc, argv);
+        } else if (!strcmp("rmdir", argv[0])) {
+            buildin_rmdir(argc, argv);
+        } else if (!strcmp("rm", argv[0])) {
+            buildin_rm(argc, argv);
+        } else {
+            printf("external command\n");
         }
     }
     PANIC("my_shell: should not be here");
