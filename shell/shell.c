@@ -42,6 +42,21 @@ static void readline(char* buf, int32_t count) {
                 }
                 break;
 
+            // ctrl + l 清屏
+            case 'l' - 'a':
+                *pos = 0;
+                clear();
+                print_prompt();
+                printf("%s", buf);
+                break;
+
+            case 'u' - 'a':
+                while (buf != pos) {
+                    putchar('\b');
+                    *(pos--) = 0;
+                }
+                break;
+
             // 非控制键则输出字符
             default:
                 putchar(*pos);
