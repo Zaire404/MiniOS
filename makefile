@@ -38,6 +38,7 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/inode.o \
 		$(BUILD_DIR)/fork.o \
 		$(BUILD_DIR)/shell.o \
+		$(BUILD_DIR)/buildin_cmd.o \
 		
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
