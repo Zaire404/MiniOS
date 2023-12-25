@@ -4,7 +4,7 @@ HD60M_PATH = /opt/bochs/hd60M.img
 AS = nasm
 CC = gcc
 LD = ld
-LIB = -I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/ -I thread/ -I userprog/ -I fs/
+LIB = -I lib/ -I lib/kernel/ -I lib/user/ -I kernel/ -I device/ -I thread/ -I userprog/ -I fs/ -I shell/
 ASFLAGS = -f elf
 CFLAGS = -m32 -Wall $(LIB) -c -fno-builtin -fno-stack-protector -W -Wstrict-prototypes -Wmissing-prototypes 
 LDFLAGS = -m elf_i386 -Ttext $(ENTRY_POINT) -e main -Map $(BUILD_DIR)/kernel.map
@@ -37,8 +37,8 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/dir.o \
 		$(BUILD_DIR)/inode.o \
 		$(BUILD_DIR)/fork.o \
+		$(BUILD_DIR)/shell.o \
 		
-    
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
 
@@ -72,7 +72,10 @@ $(BUILD_DIR)/%.o: userprog/%.c
 
 $(BUILD_DIR)/%.o: fs/%.c
 	$(CC) $(CFLAGS) -o $@ $<
-	
+
+$(BUILD_DIR)/%.o: shell/%.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 # Compile assembly kernel files
 $(BUILD_DIR)/%.o: kernel/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
