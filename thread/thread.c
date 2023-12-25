@@ -52,15 +52,15 @@ static pid_t allocate_pid(void) {
     return next_pid;
 }
 
+pid_t fork_pid(void) { return allocate_pid(); }
+
 // 初始化线程栈thread_stack, 将待执行的函数和参数放到thread_stack中的相应位置
 void thread_create(struct task_struct* pthread, thread_func function, void* func_arg) {
     // 先预留中断使用栈的空间
-    // pthread->self_kstack -= sizeof(struct intr_stack);
-    pthread->self_kstack = (uint32_t*)((int)(pthread->self_kstack) - sizeof(struct intr_stack));
+    pthread->self_kstack -= sizeof(struct intr_stack);
 
     // 再留出线程栈空间
-    // pthread->self_kstack -= sizeof(struct thread_stack);
-    pthread->self_kstack = (uint32_t*)((int)(pthread->self_kstack) - sizeof(struct thread_stack));
+    pthread->self_kstack -= sizeof(struct thread_stack);
 
     struct thread_stack* kthread_stack = (struct thread_stack*)pthread->self_kstack;
     kthread_stack->eip = kernel_thread;
@@ -99,7 +99,8 @@ void init_thread(struct task_struct* pthread, char* name, int prio) {
         pthread->fd_table[fd_idx] = -1;
         fd_idx++;
     }
-    
+    pthread->cwd_inode_nr = 0;           // 以根目录作为默认工作路径
+    pthread->parent_pid = -1;            // -1表示没有父进程
     pthread->stack_magic = STACK_MAGIC;  //自定义魔数
 }
 
@@ -206,12 +207,15 @@ void thread_yield(void) {
     intr_set_status(old_status);
 }
 
+extern void init(void);
 // 初始化线程环境
 void thread_init(void) {
     put_str("thread_init start\n");
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
     lock_init(&pid_lock);
+    // 先创建第一个用户进程:init
+    process_execute(init, "init");  // 放在第一个初始化,这是第一个进程,init进程的pid为1
     // 将当前main函数创建为线程
     make_main_thread();
     // 创建idle线程

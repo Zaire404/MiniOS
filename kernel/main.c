@@ -1,19 +1,28 @@
 #include "dir.h"
+#include "fork.h"
 #include "fs.h"
 #include "init.h"
 #include "interrupt.h"
 #include "stdio.h"
 #include "string.h"
+#include "syscall.h"
+
+void init(void);
 
 int main(void) {
     init_all();
-    intr_enable();
-    struct stat obj_stat;
-    sys_stat("/", &obj_stat);
-    printf("/`s info\n   i_no:%d\n   size:%d\n   filetype:%s\n", obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
-    sys_stat("/dir1", &obj_stat);
-    printf("/dir1`s info\n   i_no:%d\n   size:%d\n   filetype:%s\n", obj_stat.st_ino, obj_stat.st_size, obj_stat.st_filetype == 2 ? "directory" : "regular");
     while (1) {
     };
     return 0;
+}
+
+void init(void) {
+    uint32_t ret_pid = fork();
+    if (ret_pid) {
+        printf("i am father, my pid is %d, child pid is %d\n", getpid(), ret_pid);
+    } else {
+        printf("i am child, my pid is %d, ret pid is %d\n", getpid(), ret_pid);
+    }
+    while (1) {
+    };
 }

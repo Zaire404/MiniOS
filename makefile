@@ -36,6 +36,7 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/file.o \
 		$(BUILD_DIR)/dir.o \
 		$(BUILD_DIR)/inode.o \
+		$(BUILD_DIR)/fork.o \
 		
     
 # Compile boot files
