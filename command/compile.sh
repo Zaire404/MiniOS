@@ -10,16 +10,17 @@ if [[ ! -d "../lib" || ! -d "../build" ]];then
    exit
 fi
 CC="gcc"
-BIN="prog_arg"
+BIN="cat"
 CFLAGS="-Wall -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -Wsystem-headers -m32 -fno-stack-protector"
-LIBS="-I ../lib -I ../lib/user -I ../fs -I ../thread -I ../lib/kernel -I ../kernel"
+LIBS="-I ../lib/ -I ../lib/kernel/ -I ../lib/user/ -I ../kernel/ -I ../device/ -I ../thread/ -I ../userprog/ -I ../fs/ -I ../shell/"
+
 OBJS="../build/string.o ../build/syscall.o \
       ../build/stdio.o ../build/assert.o start.o"
 DD_IN=$BIN
 DD_OUT="/opt/bochs/hd60M.img" 
 
-# nasm -f elf ./start.S -o ./start.o
+# nasm -f elf ./start.s -o ./start.o
 # ar rcs simple_crt.a $OBJS start.o
 # $CC $CFLAGS $LIBS -o $BIN".o" $BIN".c"
 # ld $BIN".o" simple_crt.a -o $BIN -m elf_i386
@@ -29,11 +30,3 @@ if [[ -f $BIN ]];then
    dd if=./$DD_IN of=$DD_OUT bs=512 \
    count=$SEC_CNT seek=300 conv=notrunc
 fi
-
-##########   以上核心就是下面这三条命令   ##########
-#gcc -Wall -c -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes \
-#   -Wsystem-headers -I ../lib -o prog_no_arg.o prog_no_arg.c
-#ld -e main prog_no_arg.o ../build/string.o ../build/syscall.o\
-#   ../build/stdio.o ../build/assert.o -o prog_no_arg
-#dd if=prog_no_arg of=/home/work/my_workspace/bochs/hd60M.img \
-#   bs=512 count=10 seek=300 conv=notrunc

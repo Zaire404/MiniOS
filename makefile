@@ -41,6 +41,7 @@ OBJS =  $(BUILD_DIR)/main.o \
 		$(BUILD_DIR)/buildin_cmd.o \
 		$(BUILD_DIR)/exec.o \
 		$(BUILD_DIR)/assert.o \
+		$(BUILD_DIR)/wait_exit.o \
 
 # Compile boot files
 boot: $(BUILD_DIR)/mbr.o $(BUILD_DIR)/loader.o
