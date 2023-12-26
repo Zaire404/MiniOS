@@ -10,17 +10,19 @@ if [[ ! -d "../lib" || ! -d "../build" ]];then
    exit
 fi
 CC="gcc"
-BIN="prog_no_arg"
+BIN="prog_arg"
 CFLAGS="-Wall -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -Wsystem-headers -m32 -fno-stack-protector"
-LIBS="-I ../lib/"
+LIBS="-I ../lib -I ../lib/user -I ../fs -I ../thread -I ../lib/kernel -I ../kernel"
 OBJS="../build/string.o ../build/syscall.o \
-      ../build/stdio.o ../build/assert.o"
+      ../build/stdio.o ../build/assert.o start.o"
 DD_IN=$BIN
 DD_OUT="/opt/bochs/hd60M.img" 
 
-# $CC $CFLAGS $LIB -o $BIN".o" $BIN".c"
-# ld -e main $BIN".o" $OBJS -o $BIN -m elf_i386
+# nasm -f elf ./start.S -o ./start.o
+# ar rcs simple_crt.a $OBJS start.o
+# $CC $CFLAGS $LIBS -o $BIN".o" $BIN".c"
+# ld $BIN".o" simple_crt.a -o $BIN -m elf_i386
 SEC_CNT=$(ls -l $BIN|awk '{printf("%d", ($5+511)/512)}')
 
 if [[ -f $BIN ]];then
