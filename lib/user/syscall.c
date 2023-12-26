@@ -153,3 +153,8 @@ int32_t chdir(const char* path) {
 void ps(void) {
     _syscall0(SYS_PS);
 }
+
+// 执行程序
+int execv(const char *pathname, char** argv) {
+    return _syscall2(SYS_EXECV, pathname, argv);
+}

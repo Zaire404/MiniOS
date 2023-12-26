@@ -1,6 +1,6 @@
 #include "buildin_cmd.h"
 
-#include "debug.h"
+#include "assert.h"
 #include "dir.h"
 #include "fs.h"
 #include "global.h"
@@ -11,7 +11,7 @@
 
 // 将路径old_abs_path中的..和.转换为实际路径后存入new_abs_path
 static void wash_path(char* old_abs_path, char* new_abs_path) {
-    ASSERT(old_abs_path[0] == '/');
+    assert(old_abs_path[0] == '/');
     char name[MAX_FILE_NAME_LEN] = {0};
     char* sub_path = old_abs_path;
     sub_path = path_parse(sub_path, name);
