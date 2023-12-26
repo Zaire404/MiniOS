@@ -1,7 +1,7 @@
 #include "shell.h"
 
 #include "buildin_cmd.h"
-#include "debug.h"
+#include "assert.h"
 #include "file.h"
 #include "global.h"
 #include "print.h"
@@ -28,7 +28,7 @@ void print_prompt(void) { printf("[root@localhost %s]$ ", cwd_cache); }
 // 从键盘缓冲区中最多读入count个字节到buf
 // 当键盘缓冲区中没有数据时, 任务被阻塞, 直到缓冲区中有数据并读走
 static void readline(char* buf, int32_t count) {
-    ASSERT(buf != NULL && count > 0);
+    assert(buf != NULL && count > 0);
     char* pos = buf;
     while (read(stdin_no, pos, 1) != -1 && (pos - buf) < count) {
         switch (*pos) {
@@ -73,7 +73,7 @@ static void readline(char* buf, int32_t count) {
 
 // 分析字符串cmd_str中以token为分隔符的单词, 将各单词的指针存入argv数组
 static int32_t cmd_parse(char* cmd_str, char** argv, char token) {
-    ASSERT(cmd_str != NULL);
+    assert(cmd_str != NULL);
     int32_t arg_idx = 0;
     while (arg_idx < MAX_ARG_NR) {
         argv[arg_idx] = NULL;
@@ -151,8 +151,33 @@ void my_shell(void) {
         } else if (!strcmp("rm", argv[0])) {
             buildin_rm(argc, argv);
         } else {
-            printf("external command\n");
+            // 如果是外部命令,需要从磁盘上加载
+            int32_t pid = fork();
+            if (pid) {  // 父进程
+                // 下面这个while必须要加上,否则父进程一般情况下会比子进程先执行,
+                // 因此会进行下一轮循环将findl_path清空,这样子进程将无法从final_path中获得参数
+                while (1) {
+                }
+            } else {  // 子进程
+                make_clear_abs_path(argv[0], final_path);
+                argv[0] = final_path;
+                // 先判断下文件是否存在
+                struct stat file_stat;
+                memset(&file_stat, 0, sizeof(struct stat));
+                if (stat(argv[0], &file_stat) == -1) {
+                    printf("my_shell: cannot access %s: No such file or directory\n", argv[0]);
+                } else {
+                    execv(argv[0], argv);
+                }
+                while (1) {
+                }
+            }
+        }
+        int32_t arg_idx = 0;
+        while (arg_idx < MAX_ARG_NR) {
+            argv[arg_idx] = NULL;
+            arg_idx++;
         }
     }
-    PANIC("my_shell: should not be here");
+    panic("my_shell: should not be here");
 }

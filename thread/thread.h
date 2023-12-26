@@ -7,6 +7,7 @@
 
 #define STACK_MAGIC 0x19870916
 #define MAX_FILES_OPEN_PER_PROC 8  // 每个进程最大的打开文件数
+#define TASK_NAME_LEN 16
 typedef void thread_func(void*);
 typedef int16_t pid_t;
 
