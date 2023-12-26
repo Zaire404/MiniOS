@@ -7,6 +7,7 @@
 
 #define STACK_MAGIC 0x19870916
 #define MAX_FILES_OPEN_PER_PROC 8  // 每个进程最大的打开文件数
+#define TASK_NAME_LEN 16
 typedef void thread_func(void*);
 typedef int16_t pid_t;
 
@@ -90,6 +91,8 @@ struct task_struct {
     struct virtual_addr userprog_vaddr;            // 用户进程的虚拟地址
     struct mem_block_desc u_block_desc[DESC_CNT];  // 用户进程内存块描述符
     uint32_t cwd_inode_nr;                         // 进程所在的工作目录的inode编号
+    int16_t parent_pid;                            // 父进程pid
+    int8_t exit_status;                            // 进程结束时自己调用exit传入的参数
     uint32_t stack_magic;                          // 魔数, 栈的边界标记, 用于检测栈的溢出
 };
 
@@ -97,6 +100,7 @@ extern struct list thread_ready_list;
 extern struct list thread_all_list;
 
 struct task_struct* running_thread(void);
+pid_t fork_pid(void);
 void thread_create(struct task_struct* pthread, thread_func function, void* func_arg);
 void init_thread(struct task_struct* pthread, char* name, int prio);
 struct task_struct* thread_start(char* name, int prio, thread_func function, void* func_arg);
@@ -105,4 +109,9 @@ void thread_init(void);
 void thread_block(enum task_status stat);
 void thread_unblock(struct task_struct* pthread);
 void thread_yield(void);
+void pid_pool_init(void);
+void thread_exit(struct task_struct* thread_over, bool need_schedule);
+void sys_ps(void);
+void release_pid(pid_t pid);
+struct task_struct* pid2thread(int32_t pid);
 #endif

@@ -228,6 +228,5 @@ void inode_release(struct partition* part, uint32_t inode_no) {
     void* io_buf = sys_malloc(1024);
     inode_delete(part, inode_no, io_buf);
     sys_free(io_buf);
-    
     inode_close(inode_to_del);
 }

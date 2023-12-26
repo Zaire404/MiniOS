@@ -1,16 +1,16 @@
 #include "init.h"
 
 #include "console.h"
+#include "fs.h"
+#include "ide.h"
 #include "interrupt.h"
+#include "keyboard.h"
 #include "memory.h"
 #include "print.h"
+#include "syscall-init.h"
 #include "thread.h"
 #include "timer.h"
-#include "keyboard.h"
 #include "tss.h"
-#include "syscall-init.h"
-#include "ide.h"
-#include "fs.h"
 
 void init_all() {
     put_str("init_all\n");
@@ -22,6 +22,7 @@ void init_all() {
     keyboard_init();
     tss_init();
     syscall_init();
+    intr_enable();    // 后面的ide_init需要打开中断
     ide_init();
     filesys_init();
 }

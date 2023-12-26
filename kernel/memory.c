@@ -198,7 +198,7 @@ void* get_a_page(enum pool_flags pf, uint32_t vaddr) {
     // 若当前是用户进程申请用户内存, 就修改用户进程自己的虚拟地址位图
     if (cur->pgdir != NULL && pf == PF_USER) {
         bit_idx = (vaddr - cur->userprog_vaddr.vaddr_start) / PG_SIZE;
-        ASSERT(bit_idx > 0);
+        ASSERT(bit_idx >= 0);
         bitmap_set(&cur->userprog_vaddr.vaddr_bitmap, bit_idx, 1);
     } else if (cur->pgdir == NULL && pf == PF_KERNEL) {
         // 如果是内核线程申请内核内存, 就修改kernel_vaddr
@@ -210,6 +210,7 @@ void* get_a_page(enum pool_flags pf, uint32_t vaddr) {
     }
     void* page_phyaddr = palloc(mem_pool);
     if (page_phyaddr == NULL) {
+        lock_release(&mem_pool->lock);
         return NULL;
     }
     page_table_add((void*)vaddr, page_phyaddr);
@@ -224,6 +225,21 @@ uint32_t addr_v2p(uint32_t vaddr) {
     return ((*pte & 0xfffff000) + (vaddr & 0x00000fff));
 }
 
+// 安装1页大小的vaddr, 专门针对fork时虚拟地址位图无须操作的情况
+void* get_a_page_without_opvaddrbitmap(enum pool_flags pf, uint32_t vaddr) {
+    struct pool* mem_pool = pf & PF_KERNEL ? &kernel_pool : &user_pool;
+    lock_acquire(&mem_pool->lock);
+    void* page_phyaddr = palloc(mem_pool);
+    if (page_phyaddr == NULL) {
+        lock_release(&mem_pool->lock);
+        return NULL;
+    }
+    page_table_add((void*)vaddr, page_phyaddr);
+    lock_release(&mem_pool->lock);
+    return (void*)vaddr;
+}
+
+// 初始化内存池
 static void mem_pool_init(uint32_t all_mem) {
     put_str("    mem_pool_init start\n");
     // 页表大小=1页的页目录表 + 第0和第768个页目录项指向同一个页表 +
@@ -529,6 +545,20 @@ void sys_free(void* ptr) {
         }
         lock_release(&mem_pool->lock);
     }
+}
+
+// 根据物理页框地址pg_phy_addr在相应的内存池的位图清0,不改动页表
+void free_a_phy_page(uint32_t pg_phy_addr) {
+    struct pool* mem_pool;
+    uint32_t bit_idx = 0;
+    if (pg_phy_addr >= user_pool.phy_addr_start) {
+        mem_pool = &user_pool;
+        bit_idx = (pg_phy_addr - user_pool.phy_addr_start) / PG_SIZE;
+    } else {
+        mem_pool = &kernel_pool;
+        bit_idx = (pg_phy_addr - kernel_pool.phy_addr_start) / PG_SIZE;
+    }
+    bitmap_set(&mem_pool->pool_bitmap, bit_idx, 0);
 }
 
 // 内存管理部分初始化入口
