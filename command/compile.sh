@@ -10,7 +10,7 @@ if [[ ! -d "../lib" || ! -d "../build" ]];then
    exit
 fi
 CC="gcc"
-BIN="prog_pipe"
+BIN="cat"
 CFLAGS="-Wall -c -fno-builtin -W -Wstrict-prototypes \
       -Wmissing-prototypes -Wsystem-headers -m32 -fno-stack-protector"
 LIBS="-I ../lib/ -I ../lib/kernel/ -I ../lib/user/ -I ../kernel/ -I ../device/ -I ../thread/ -I ../userprog/ -I ../fs/ -I ../shell/"

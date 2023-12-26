@@ -79,7 +79,7 @@ void buildin_pwd(uint32_t argc, char** argv UNUSED) {
     }
 }
 
-// cd命令的内建函 
+// cd命令的内建函
 char* buildin_cd(uint32_t argc, char** argv) {
     if (argc > 2) {
         printf("cd: only support 1 argument!\n");
@@ -267,3 +267,6 @@ int32_t buildin_rm(uint32_t argc, char** argv) {
     }
     return ret;
 }
+
+// 显示内建命令列表
+void buildin_help(uint32_t argc UNUSED, char** argv UNUSED) { help(); }
