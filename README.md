@@ -13,3 +13,25 @@
 - 0x0D 编写硬盘驱动程序
 - 0x0E 文件系统
 - 0x0F 系统交互
+
+## 运行说明
+
+#### 下载
+```
+git clone https://github.com/Zaire404/MiniOS.git
+cd MiniOS
+```
+#### 配置`bochsrc.disk`和`makefile`
+修改配置文件中的bochs位置和硬盘位置
+#### 编译装载
+```
+sudo make all
+```
+#### 运行
+```
+bochs -f bochsrc.disk
+```
+
+
+
+
